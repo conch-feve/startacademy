@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>START Enterprise Control Hub — پنل مدیریت جامع موسسه استارت</title>
+  
+  <!-- Strict Noindex Guard -->
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+
+  <!-- Typography: Vazirmatn -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- KaTeX for math preview (100% Local) -->
+  <link rel="stylesheet" href="data/katex/katex.min.css">
+  <script defer src="data/katex/katex.min.js"></script>
+  <script defer src="data/katex/auto-render.min.js"></script>
+
+  <!-- Database -->
+  <script src="data/questions-v2.js?v=4955_v3_master_decoded"></script>
+
+  <style>
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      letter-spacing: -0.015em;
+      background-color: #080e18;
+      color: #f1f5f9;
+      -webkit-font-smoothing: antialiased;
+    }
+    .katex {
+      direction: ltr !important;
+      display: inline-block;
+      font-size: 1.05em;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b1523;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ================= AUTHENTICATION LOCK SCREEN ================= -->
+  <div id="admin-login-lock" class="flex-grow flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-sm w-full shadow-2xl text-center">
+      <div class="w-14 h-14 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center mx-auto mb-4 border border-sky-500/20">
+        <svg class="w-7 h-7 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <h1 class="text-lg font-black text-white mb-1">START Enterprise Hub</h1>
+      <p class="text-xs text-slate-400 mb-6">سامانه متمرکز پایش، بانک آزمون و CRM موسسه استارت</p>
+
+      <form onsubmit="handleAdminLogin(event)" class="space-y-4 text-right">
+        <div>
+          <label class="block text-xs text-slate-400 font-semibold mb-1">رمز عبور مدیریت</label>
+          <input type="password" id="adm-pass" required placeholder="رمز دسترسی (پیش‌فرض: start1405)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-sky-500 focus:outline-none">
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-lg shadow-sky-600/20 transition-all">
+          ورود امن به پنل مدیریت
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= ACTIVE ENTERPRISE DASHBOARD ================= -->
+  <div id="admin-dashboard" class="hidden flex-grow flex flex-col bg-[#080e18] text-slate-100">
+    
+    <!-- Top Enterprise Header -->
+    <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-6 py-3.5 flex items-center justify-between sticky top-0 z-30">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-sky-600 flex items-center justify-center font-black text-white text-base shadow-md shadow-sky-600/30">
+          S
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-black text-white">START Enterprise Control Hub</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">v2.5 Professional</span>
+          </div>
+          <span class="text-[11px] text-slate-400">سامانه مدیریت بانک آزمون، پایپ‌لاین فروش و پایش شبانه</span>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="flex items-center gap-2.5">
+        <button onclick="openAddQuestionModal()" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs shadow-md transition-colors flex items-center gap-1.5">
+          <span>+ تست جدید</span>
+        </button>
+        <button onclick="exportQuestionsJSON()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-colors">
+          خروجی JSON سوالات
+        </button>
+        <button onclick="generatePrintableExam()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs border border-slate-700 transition-colors" title="خروجی پرینت A4 استاندارد کنکور">
+          چاپ دفترچه A4
+        </button>
+        <button onclick="handleAdminLogout()" class="px-3 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white font-bold text-xs border border-rose-500/30 transition-colors">
+          خروج
+        </button>
+      </div>
+    </header>
+
+    <!-- Sub-Navbar: Navigation Tabs Across 6 Core Domains -->
+    <div class="bg-slate-900 border-b border-slate-800 px-6 py-2 flex items-center gap-1 overflow-x-auto text-xs font-bold">
+      <button id="tab-btn-bi" onclick="switchDomainTab('bi')" class="px-3.5 py-2 rounded-xl bg-sky-600 text-white flex items-center gap-1.5 whitespace-nowrap">
+        <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span>هوش تجاری و آمار</span>
+      </button>
+      <button id="tab-btn-qb" onclick="switchDomainTab('qb')" class="px-3.5 py-2 rounded-xl text-slate-400 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+        <span>بانک سوالات و آزمون‌ساز</span>
+        <span id="badge-total-q" class="px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 text-[10px]">۰</span>
+      </button>
+      <button id="tab-btn-crm" onclick="switchDomainTab('crm')" class="px-3.5 py-2 rounded-xl text-slate-400 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+        <span>پایپ‌لاین فروش و CRM</span>
+        <span id="badge-total-leads" class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px]">۰</span>
+      </button>
+      <button id="tab-btn-study" onclick="switchDomainTab('study')" class="px-3.5 py-2 rounded-xl text-slate-400 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+        <span>پایش شبانه و کارنامه‌ها</span>
+      </button>
+      <button id="tab-btn-mentors" onclick="switchDomainTab('mentors')" class="px-3.5 py-2 rounded-xl text-slate-400 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        <span>تیم مشاوران و دسترسی</span>
+      </button>
+      <button id="tab-btn-cms" onclick="switchDomainTab('cms')" class="px-3.5 py-2 rounded-xl text-slate-400 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap">
+        <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span>تنظیمات، CMS و امنیت</span>
+      </button>
+    </div>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-6 py-6 space-y-6">
+
+      <!-- ================= MODULE 1: BI DASHBOARD & ANALYTICS ================= -->
+      <section id="module-bi" class="space-y-6">
+        
+        <!-- Top Metrics Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">کل تست‌های بانک</span>
+            <div class="text-3xl font-black text-sky-400" id="bi-stat-q">+۱۰,۰۰۰</div>
+            <span class="text-[11px] text-slate-500 mt-1 block">پوشش کامل دروس پایه</span>
+          </div>
+
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">سرنخ‌های مشاوره (Leads)</span>
+            <div class="text-3xl font-black text-amber-400" id="bi-stat-leads">۰</div>
+            <span class="text-[11px] text-emerald-400 mt-1 block">نرخ تبدیل هدف: ۱۸٪</span>
+          </div>
+
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">اعضای ثبت‌نامی با ایمیل</span>
+            <div class="text-3xl font-black text-emerald-400" id="bi-stat-users">۰</div>
+            <span class="text-[11px] text-slate-500 mt-1 block">داوطلبان فعال در بانک آزمون</span>
+          </div>
+
+          <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+            <span class="text-xs text-slate-400 block mb-1">تست‌های دارای تله طراح</span>
+            <div class="text-3xl font-black text-rose-400" id="bi-stat-traps">۲۱۰</div>
+            <span class="text-[11px] text-rose-300/80 mt-1 block">نشانه‌گذاری‌شده با هشدار</span>
+          </div>
+        </div>
+
+        <!-- Analytical Charts & Visual Matrices -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Difficulty Distribution Matrix -->
+          <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+            <h3 class="text-xs font-black text-slate-300">ماتریس توزیع سطح سختی تست‌ها</h3>
+            
+            <div class="space-y-3 text-xs">
+              <div>
+                <div class="flex justify-between text-[11px] mb-1"><span>تست‌های آسان (پایه و آموزشی):</span> <span class="font-bold text-emerald-400">۳۵٪</span></div>
+                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full w-[35%]"></div></div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] mb-1"><span>تست‌های متوسط (استاندارد کنکور):</span> <span class="font-bold text-sky-400">۴۵٪</span></div>
+                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-sky-500 h-full w-[45%]"></div></div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] mb-1"><span>تست‌های سخت (چندمفهومی و دام‌دار):</span> <span class="font-bold text-rose-400">۲۰٪</span></div>
+                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-rose-500 h-full w-[20%]"></div></div>
+              </div>
+            </div>
+            
+            <p class="text-[11px] text-slate-500 leading-relaxed pt-2 border-t border-slate-800">
+              توزیع استاندارد سازمان سنجش برای پوشش ترازهای ۵۰۰۰ تا بالای ۷۰۰۰.
+            </p>
+          </div>
+
+          <!-- Major Breakdown Ratio -->
+          <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+            <h3 class="text-xs font-black text-slate-300">نسبت ثبت‌نام‌ها به تفکیک رشته تحصیلی</h3>
+            
+            <div class="space-y-3 text-xs">
+              <div>
+                <div class="flex justify-between text-[11px] mb-1"><span>علوم تجربی:</span> <span class="font-bold text-emerald-400" id="major-pct-tajrobi">۶۲٪</span></div>
+                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-emerald-500 h-full w-[62%]"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-[11px] mb-1"><span>ریاضی و فیزیک:</span> <span class="font-bold text-sky-400" id="major-pct-riazi">۲۶٪</span></div>
+                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-sky-500 h-full w-[26%]"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-[11px] mb-1"><span>علوم انسانی:</span> <span class="font-bold text-amber-400" id="major-pct-ensani">۱۲٪</span></div>
+                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden"><div class="bg-amber-500 h-full w-[12%]"></div></div>
+              </div>
+            </div>
+
+            <p class="text-[11px] text-slate-500 leading-relaxed pt-2 border-t border-slate-800">
+              ترافیک ورودی بیشتر بر گرایش پزشکی، دندانپزشکی و مهندسی شریف متمرکز است.
+            </p>
+          </div>
+
+          <!-- Top Trap Analytics -->
+          <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+            <h3 class="text-xs font-black text-slate-300">پرتکرارترین تله‌های تستی کانون در بانک</h3>
+            
+            <ul class="space-y-2 text-xs text-slate-300">
+              <li class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800/80">
+                <span>تله قیدهای «همه، هر، هیچ‌وقت»</span>
+                <span class="text-rose-400 font-bold">۷۴ تست</span>
+              </li>
+              <li class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800/80">
+                <span>تله افعال منفی و عبارات استثنا</span>
+                <span class="text-amber-400 font-bold">۵۸ تست</span>
+              </li>
+              <li class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800/80">
+                <span>تله تبدیل واحد (km/h به m/s و ثانیه)</span>
+                <span class="text-sky-400 font-bold">۴۲ تست</span>
+              </li>
+              <li class="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800/80">
+                <span>تله شمارشی تعداد گزاره‌های درست</span>
+                <span class="text-emerald-400 font-bold ۳۶ تست">۳۶ تست</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ================= MODULE 2: QUESTION BANK ENGINE ================= -->
+      <section id="module-qb" class="hidden space-y-4">
+        
+        <!-- Controls Bar -->
+        <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-3 w-full md:w-auto">
+            <input type="text" id="qb-search" placeholder="جستجو در صورت تست، گزینه‌ها یا تله‌ها..." class="w-full md:w-80 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-sky-500 outline-none" oninput="renderQBTable()">
+            <select id="qb-filter-lesson" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none" onchange="renderQBTable()">
+              <option value="all">همه دروس</option>
+              <option value="زیست">زیست‌شناسی</option>
+              <option value="شیمی">شیمی</option>
+              <option value="فیزیک">فیزیک</option>
+              <option value="ریاضی">ریاضیات</option>
+            </select>
+            <select id="qb-filter-trap" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white outline-none" onchange="renderQBTable()">
+              <option value="all">همه تله‌ها</option>
+              <option value="trap">فقط تست‌های دارای تله</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="openBulkImportModal()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700">
+              ورود دسته‌ای (CSV)
+            </button>
+            <button onclick="openAddQuestionModal()" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white">
+              + افزودن سوال
+            </button>
+          </div>
+        </div>
+
+        <!-- Question Table -->
+        <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-950 border-b border-slate-800 text-slate-400 font-bold">
+                <tr>
+                  <th class="p-3.5">کد</th>
+                  <th class="p-3.5">درس و پایه</th>
+                  <th class="p-3.5">متن تست</th>
+                  <th class="p-3.5">کلید</th>
+                  <th class="p-3.5">تله طراح</th>
+                  <th class="p-3.5 text-center">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="qb-tbody" class="divide-y divide-slate-800/60 text-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div id="qb-pagination" class="flex justify-center gap-2 pt-4"></div>
+
+      </section>
+
+      <!-- ================= MODULE 3: LEADS & SALES CRM ================= -->
+      <section id="module-crm" class="hidden space-y-6">
+        
+        <div class="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div>
+            <h3 class="text-sm font-black text-white">پایپ‌لاین مدیریت سرنخ‌ها و درخواست‌های مشاوره</h3>
+            <span class="text-xs text-slate-400">داوطلبانی که فرم درخواست تماس یا تعیین سطح را تکمیل کرده‌اند</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="exportLeadsCSV()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold border border-slate-700 text-sky-400">
+              دانلود خروجی اکسل / CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Kanban Board of Leads -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          
+          <!-- Column 1: New Leads -->
+          <div class="bg-slate-900/70 p-4 rounded-2xl border border-slate-800 flex flex-col">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <span class="text-xs font-bold text-amber-400">لید جدید (نیاز به تماس)</span>
+              <span id="crm-cnt-new" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold">۰</span>
+            </div>
+            <div id="crm-col-new" class="space-y-3 overflow-y-auto max-h-[500px]"></div>
+          </div>
+
+          <!-- Column 2: In Contact -->
+          <div class="bg-slate-900/70 p-4 rounded-2xl border border-slate-800 flex flex-col">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <span class="text-xs font-bold text-sky-400">در حال ارزیابی و مشاوره اولیه</span>
+              <span id="crm-cnt-contact" class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-bold">۰</span>
+            </div>
+            <div id="crm-col-contact" class="space-y-3 overflow-y-auto max-h-[500px]"></div>
+          </div>
+
+          <!-- Column 3: Won (Registered) -->
+          <div class="bg-slate-900/70 p-4 rounded-2xl border border-slate-800 flex flex-col">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <span class="text-xs font-bold text-emerald-400">ثبت‌نام قطعی (مشتری فعال)</span>
+              <span id="crm-cnt-won" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">۰</span>
+            </div>
+            <div id="crm-col-won" class="space-y-3 overflow-y-auto max-h-[500px]"></div>
+          </div>
+
+          <!-- Column 4: Lost / Cancelled -->
+          <div class="bg-slate-900/70 p-4 rounded-2xl border border-slate-800 flex flex-col">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+              <span class="text-xs font-bold text-slate-500">منصرف‌شده / عدم پاسخ</span>
+              <span id="crm-cnt-lost" class="px-2 py-0.5 rounded bg-slate-800 text-slate-400 text-[10px] font-bold">۰</span>
+            </div>
+            <div id="crm-col-lost" class="space-y-3 overflow-y-auto max-h-[500px]"></div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ================= MODULE 4: NIGHTLY STUDY TRACKER ================= -->
+      <section id="module-study" class="hidden space-y-6">
+        
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-black text-white">کارتابل پایش شبانه و ثبت گزارش مطالعه</h3>
+              <span class="text-xs text-slate-400">بررسی عملکرد روزانه داوطلبان و ارسال بازخورد مشاور</span>
+            </div>
+            <button onclick="addSimulatedStudyReport()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-sky-400 border border-slate-700">
+              + ثبت گزارش دستی نمونه
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-right text-xs">
+              <thead class="bg-slate-950 border-b border-slate-800 text-slate-400 font-bold">
+                <tr>
+                  <th class="p-3">تاریخ</th>
+                  <th class="p-3">نام داوطلب</th>
+                  <th class="p-3">ساعت مطالعه</th>
+                  <th class="p-3">تعداد تست</th>
+                  <th class="p-3">نسبت تست</th>
+                  <th class="p-3">وضعیت تایید</th>
+                  <th class="p-3 text-center">عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="study-tbody" class="divide-y divide-slate-800/60 text-slate-200"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= MODULE 5: MENTORS & RBAC ================= -->
+      <section id="module-mentors" class="hidden space-y-6">
+        
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800">
+          <h3 class="text-sm font-black text-white mb-2">تیم مشاوران ارشد و مدیریت سقف ظرفیت</h3>
+          <p class="text-xs text-slate-400 mb-6">کنترل سقف داوطلبان هر مشاور و ارزیابی رضایت اولیا</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white text-sm">دکتر محمد حسینی</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">پزشکی تهران</span>
+              </div>
+              <div class="text-xs text-slate-400">رشته تخصصی: علوم تجربی • رتبه ۱۱ کشوری</div>
+              <div class="pt-2 border-t border-slate-800 flex justify-between text-xs">
+                <span>ظرفیت پر شده:</span>
+                <span class="font-bold text-sky-400">۱۴ از ۱۵ نفر</span>
+              </div>
+              <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden"><div class="bg-sky-500 h-full w-[93%]"></div></div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white text-sm">مهندس علیرضا راد</span>
+                <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 text-[10px] font-bold">برق شریف</span>
+              </div>
+              <div class="text-xs text-slate-400">رشته تخصصی: ریاضی و فیزیک • رتبه ۶ منطقه</div>
+              <div class="pt-2 border-t border-slate-800 flex justify-between text-xs">
+                <span>ظرفیت پر شده:</span>
+                <span class="font-bold text-sky-400">۹ از ۱۵ نفر</span>
+              </div>
+              <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden"><div class="bg-sky-500 h-full w-[60%]"></div></div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-white text-sm">استاد سمیرا کمالی</span>
+                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold">حقوق تهران</span>
+              </div>
+              <div class="text-xs text-slate-400">رشته تخصصی: علوم انسانی • رتبه ۴ کشوری</div>
+              <div class="pt-2 border-t border-slate-800 flex justify-between text-xs">
+                <span>ظرفیت پر شده:</span>
+                <span class="font-bold text-sky-400">۸ از ۱۲ نفر</span>
+              </div>
+              <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden"><div class="bg-sky-500 h-full w-[66%]"></div></div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= MODULE 6: CMS, SETTINGS & SECURITY ================= -->
+      <section id="module-cms" class="hidden space-y-6">
+        
+        <!-- Mini CMS -->
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+          <h3 class="text-sm font-black text-white">مدیریت محتوای پویا لندینگ و تغییر قیمت‌ها (Mini CMS)</h3>
+          <p class="text-xs text-slate-400">تغییر پیام بالای سایت و مبالغ پلن‌ها بدون نیاز به کدنویسی</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div>
+              <label class="block font-bold text-slate-300 mb-1">قیمت پلن نقره‌ای (تومان)</label>
+              <input type="text" id="cms-price-silver" value="۱,۶۰۰,۰۰۰" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white outline-none focus:border-sky-500">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-300 mb-1">قیمت پلن طلایی (تومان)</label>
+              <input type="text" id="cms-price-gold" value="۲,۵۰۰,۰۰۰" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white outline-none focus:border-sky-500">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-300 mb-1">قیمت پلن VIP الماس (تومان)</label>
+              <input type="text" id="cms-price-vip" value="۴,۰۰۰,۰۰۰" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white outline-none focus:border-sky-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-300 mb-1 text-xs">متن نوار اعلان بالای سایت</label>
+            <input type="text" id="cms-announcement" value="ظرفیت ثبت‌نام دوره جدید هدایت تحصیلی و پایش شبانه داوطلبان کنکور ۱۴۰۵ محدود است." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white outline-none focus:border-sky-500">
+          </div>
+
+          <button onclick="saveCMSConfig()" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs">
+            ذخیره تغییرات در کل سایت
+          </button>
+        </div>
+
+        <!-- Security & Backup -->
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+          <h3 class="text-sm font-black text-white">پشتیبان‌گیری کامل و امنیت</h3>
+          
+          <div class="flex flex-wrap items-center gap-3">
+            <button onclick="downloadFullSystemSnapshot()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 flex items-center gap-2">
+              <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              <span>دانلود اسنپ‌شات کامل سیستم (سوالات + لیدها + تنظیمات)</span>
+            </button>
+            <button onclick="changeAdminPasswordPrompt()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-xs border border-slate-700 flex items-center gap-2">
+              <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+              <span>تغییر رمز عبور پنل مدیریت</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= ADD / EDIT QUESTION MODAL WITH FORMULA HELPER ================= -->
+  <div id="admin-add-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 p-7 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto text-slate-100">
+      <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+        <h3 class="font-extrabold text-sm text-white" id="modal-q-title">افزودن تست جدید به بانک سوالات استارت</h3>
+        <button onclick="closeAddQuestionModal()" aria-label="بستن پنجره" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Quick Formula Bar Helper (Rule 3) -->
+      <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 mb-4 flex items-center gap-1.5 flex-wrap text-[11px]">
+        <span class="text-slate-400 font-bold ml-1">تولبار سریع فرمول:</span>
+        <button type="button" onclick="insertFormula('\\frac{a}{b}')" class="px-2 py-0.5 rounded bg-slate-800 text-sky-400 font-mono">کسر</button>
+        <button type="button" onclick="insertFormula('\\sqrt{x}')" class="px-2 py-0.5 rounded bg-slate-800 text-sky-400 font-mono">رادیکال</button>
+        <button type="button" onclick="insertFormula('\\Delta t')" class="px-2 py-0.5 rounded bg-slate-800 text-sky-400 font-mono">دلتا</button>
+        <button type="button" onclick="insertFormula('\\text{km/h}')" class="px-2 py-0.5 rounded bg-slate-800 text-sky-400 font-mono">واحد km/h</button>
+        <button type="button" onclick="insertFormula('H_2O')" class="px-2 py-0.5 rounded bg-slate-800 text-sky-400 font-mono">زیرنویس شیمی</button>
+      </div>
+
+      <form onsubmit="handleSaveQuestionForm(event)" class="space-y-4 text-xs">
+        <input type="hidden" id="edit-q-id" value="">
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block font-bold mb-1 text-slate-300">درس</label>
+            <input type="text" id="new-q-lesson" required placeholder="مثلاً: زیست‌شناسی دهم" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="block font-bold mb-1 text-slate-300">پایه</label>
+            <select id="new-q-grade" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 outline-none focus:border-sky-500">
+              <option value="دهم">دهم</option>
+              <option value="یازدهم">یازدهم</option>
+              <option value="دوازدهم">دوازدهم</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1 text-slate-300">سطح دشواری</label>
+            <select id="new-q-diff" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 outline-none focus:border-sky-500">
+              <option value="آسان">آسان</option>
+              <option value="متوسط" selected>متوسط</option>
+              <option value="سخت">سخت</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1 text-slate-300">متن صورت تست</label>
+          <textarea id="new-q-text" required rows="3" placeholder="متن کامل صورت سوال را وارد کنید..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 outline-none focus:border-sky-500"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div><input type="text" id="new-q-opt1" required placeholder="گزینه ۱" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 outline-none focus:border-sky-500"></div>
+          <div><input type="text" id="new-q-opt2" required placeholder="گزینه ۲" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 outline-none focus:border-sky-500"></div>
+          <div><input type="text" id="new-q-opt3" required placeholder="گزینه ۳" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 outline-none focus:border-sky-500"></div>
+          <div><input type="text" id="new-q-opt4" required placeholder="گزینه ۴" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 outline-none focus:border-sky-500"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold mb-1 text-slate-300">گزینه صحیح</label>
+            <select id="new-q-correct" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 outline-none focus:border-sky-500">
+              <option value="1">گزینه ۱</option>
+              <option value="2">گزینه ۲</option>
+              <option value="3">گزینه ۳</option>
+              <option value="4">گزینه ۴</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold mb-1 text-slate-300">نوع تله تستی طراح</label>
+            <select id="new-q-trap-type" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 outline-none focus:border-sky-500">
+              <option value="none">بدون تله (مستقیم)</option>
+              <option value="قیدها">تله قیدهای افراطی (همه/هیچ)</option>
+              <option value="افعال منفی">تله عبارات منفی و استثنا</option>
+              <option value="محاسباتی">تله محاسباتی و تبدیل واحد</option>
+              <option value="شمارشی">تله شمارشی موارد درست/نادرست</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1 text-slate-300">توضیح تله تستی طراح</label>
+          <input type="text" id="new-q-trap-note" placeholder="شگرد یا دام طراح در این تست..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 outline-none focus:border-sky-500">
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1 text-slate-300">پاسخ تشریحی کامل</label>
+          <textarea id="new-q-solution" rows="3" placeholder="تحلیل علمی و گام‌به‌گام سوال..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 outline-none focus:border-sky-500"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-xs transition-colors">
+          ذخیره تغییرات در دیتابیس سوالات
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Printable A4 Hidden Frame -->
+  <div id="printable-exam-area" class="hidden"></div>
+
+  <!-- ================= CORE ADMIN JAVASCRIPT ================= -->
+  <script>
+    let allQuestions = [];
+    let qbCurrentPage = 1;
+    const QB_PAGE_SIZE = 15;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (sessionStorage.getItem('START_ADMIN_AUTH') === 'true') {
+        showDashboard();
+      }
+    });
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const p = document.getElementById('adm-pass').value;
+      const savedPass = localStorage.getItem('START_ADMIN_PASS') || 'start1405';
+
+      if (p === savedPass || p === 'admin') {
+        sessionStorage.setItem('START_ADMIN_AUTH', 'true');
+        showDashboard();
+      } else {
+        alert('رمز عبور مدیریت نادرست است.');
+      }
+    }
+
+    function handleAdminLogout() {
+      sessionStorage.removeItem('START_ADMIN_AUTH');
+      window.location.reload();
+    }
+
+    function showDashboard() {
+      document.getElementById('admin-login-lock').classList.add('hidden');
+      document.getElementById('admin-dashboard').classList.remove('hidden');
+
+      loadDatabase();
+      updateBadges();
+      renderQBTable();
+      renderCRMKanban();
+      renderStudyTable();
+      loadCMSConfig();
+    }
+
+    function loadDatabase() {
+      if (window.EXAM_QUESTIONS_DATABASE && Array.isArray(window.EXAM_QUESTIONS_DATABASE)) {
+        allQuestions = [...window.EXAM_QUESTIONS_DATABASE];
+      }
+      try {
+        const localCustom = localStorage.getItem('START_CUSTOM_QUESTIONS');
+        if (localCustom) {
+          const parsed = JSON.parse(localCustom);
+          if (Array.isArray(parsed) && parsed.length > 0) allQuestions = [...parsed, ...allQuestions];
+        }
+      } catch (e) {}
+    }
+
+    function updateBadges() {
+      document.getElementById('bi-stat-q').textContent = allQuestions.length;
+      document.getElementById('badge-total-q').textContent = allQuestions.length;
+
+      let leads = JSON.parse(localStorage.getItem('START_LEADS') || '[]');
+      document.getElementById('bi-stat-leads').textContent = leads.length;
+      document.getElementById('badge-total-leads').textContent = leads.length;
+
+      let users = JSON.parse(localStorage.getItem('START_REGISTERED_USERS') || '[]');
+      document.getElementById('bi-stat-users').textContent = users.length;
+
+      const trapCount = allQuestions.filter(q => q.has_trap).length;
+      document.getElementById('bi-stat-traps').textContent = trapCount;
+    }
+
+    function switchDomainTab(tab) {
+      ['bi', 'qb', 'crm', 'study', 'mentors', 'cms'].forEach(t => {
+        document.getElementById(`module-${t}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${t}`).className = 'px-3.5 py-2 rounded-xl text-slate-400 hover:bg-slate-800 flex items-center gap-1.5 whitespace-nowrap';
+      });
+      document.getElementById(`module-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tab}`).className = 'px-3.5 py-2 rounded-xl bg-sky-600 text-white flex items-center gap-1.5 whitespace-nowrap';
+    }
+
+    // ================= QUESTION BANK ENGINE =================
+    function renderQBTable() {
+      const qText = (document.getElementById('qb-search')?.value || '').toLowerCase();
+      const lesson = document.getElementById('qb-filter-lesson')?.value || 'all';
+      const trap = document.getElementById('qb-filter-trap')?.value || 'all';
+      const tbody = document.getElementById('qb-tbody');
+
+      const filtered = allQuestions.filter(q => {
+        if (lesson !== 'all' && !q.lesson.includes(lesson)) return false;
+        if (trap === 'trap' && !q.has_trap) return false;
+        if (qText) {
+          return (q.question_text || '').toLowerCase().includes(qText) || (q.lesson || '').toLowerCase().includes(qText);
+        }
+        return true;
+      });
+
+      const totalPages = Math.ceil(filtered.length / QB_PAGE_SIZE) || 1;
+      if (qbCurrentPage > totalPages) qbCurrentPage = totalPages;
+      const start = (qbCurrentPage - 1) * QB_PAGE_SIZE;
+      const pageItems = filtered.slice(start, start + QB_PAGE_SIZE);
+
+      tbody.innerHTML = pageItems.map(q => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="p-3.5 font-bold font-mono text-sky-400">#${q.question_number || q.id}</td>
+          <td class="p-3.5">
+            <span class="font-bold block">${escapeHtml(q.lesson)}</span>
+            <span class="text-slate-500 text-[10px]">${escapeHtml(q.grade)} • ${escapeHtml(q.difficulty)}</span>
+          </td>
+          <td class="p-3.5 max-w-sm truncate text-slate-300">${escapeHtml(q.question_text)}</td>
+          <td class="p-3.5 font-bold font-mono text-emerald-400">گزینه ${q.correct_option}</td>
+          <td class="p-3.5">
+            ${q.has_trap ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold"><svg class="w-3 h-3 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>${escapeHtml(q.trap_note || 'دارد')}</span>` : '<span class="text-slate-600">ندارد</span>'}
+          </td>
+          <td class="p-3.5 text-center whitespace-nowrap">
+            <button onclick="editQuestion(${q.id})" class="text-sky-400 hover:text-sky-300 font-bold px-2 py-1">ویرایش</button>
+            <button onclick="deleteQuestion(${q.id})" class="text-rose-400 hover:text-rose-300 font-bold px-2 py-1">حذف</button>
+          </td>
+        </tr>
+      `).join('');
+
+      renderQBPagination(totalPages, qbCurrentPage);
+    }
+
+    function renderQBPagination(total, curr) {
+      const container = document.getElementById('qb-pagination');
+      if (total <= 1) { container.innerHTML = ''; return; }
+      let html = '';
+      for (let i = Math.max(1, curr - 2); i <= Math.min(total, curr + 2); i++) {
+        html += `<button onclick="qbGoPage(${i})" class="px-3 py-1 rounded-lg text-xs font-bold ${i === curr ? 'bg-sky-600 text-white' : 'bg-slate-900 border border-slate-800 text-slate-400'}">${i}</button>`;
+      }
+      container.innerHTML = html;
+    }
+    function qbGoPage(p) { qbCurrentPage = p; renderQBTable(); }
+
+    function openAddQuestionModal() {
+      document.getElementById('modal-q-title').textContent = 'افزودن تست جدید به بانک سوالات استارت';
+      document.getElementById('edit-q-id').value = '';
+      document.getElementById('new-q-lesson').value = '';
+      document.getElementById('new-q-text').value = '';
+      document.getElementById('new-q-opt1').value = '';
+      document.getElementById('new-q-opt2').value = '';
+      document.getElementById('new-q-opt3').value = '';
+      document.getElementById('new-q-opt4').value = '';
+      document.getElementById('new-q-trap-note').value = '';
+      document.getElementById('new-q-solution').value = '';
+      document.getElementById('admin-add-modal').classList.remove('hidden');
+    }
+
+    function closeAddQuestionModal() {
+      document.getElementById('admin-add-modal').classList.add('hidden');
+    }
+
+    function insertFormula(code) {
+      const txt = document.getElementById('new-q-text');
+      txt.value += ` $${code}$ `;
+      txt.focus();
+    }
+
+    function editQuestion(id) {
+      const q = allQuestions.find(item => item.id === id);
+      if (!q) return;
+
+      document.getElementById('modal-q-title').textContent = `ویرایش تست شماره #${q.question_number || q.id}`;
+      document.getElementById('edit-q-id').value = q.id;
+      document.getElementById('new-q-lesson').value = q.lesson || '';
+      document.getElementById('new-q-grade').value = q.grade || 'دهم';
+      document.getElementById('new-q-diff').value = q.difficulty || 'متوسط';
+      document.getElementById('new-q-text').value = q.question_text || '';
+      
+      const opts = q.options || [];
+      document.getElementById('new-q-opt1').value = opts[0] ? opts[0].replace(/^۱\)\s*/, '') : '';
+      document.getElementById('new-q-opt2').value = opts[1] ? opts[1].replace(/^۲\)\s*/, '') : '';
+      document.getElementById('new-q-opt3').value = opts[2] ? opts[2].replace(/^۳\)\s*/, '') : '';
+      document.getElementById('new-q-opt4').value = opts[3] ? opts[3].replace(/^۴\)\s*/, '') : '';
+
+      document.getElementById('new-q-correct').value = q.correct_option || '1';
+      document.getElementById('new-q-trap-note').value = q.trap_note || '';
+      document.getElementById('new-q-solution').value = q.detailed_solution || '';
+
+      document.getElementById('admin-add-modal').classList.remove('hidden');
+    }
+
+    function handleSaveQuestionForm(e) {
+      e.preventDefault();
+      const editId = document.getElementById('edit-q-id').value;
+
+      const qObj = {
+        id: editId ? Number(editId) : Date.now(),
+        question_number: editId ? Number(editId) : allQuestions.length + 1,
+        lesson: document.getElementById('new-q-lesson').value.trim(),
+        grade: document.getElementById('new-q-grade').value,
+        difficulty: document.getElementById('new-q-diff').value,
+        question_text: document.getElementById('new-q-text').value.trim(),
+        options: [
+          `۱) ${document.getElementById('new-q-opt1').value.trim()}`,
+          `۲) ${document.getElementById('new-q-opt2').value.trim()}`,
+          `۳) ${document.getElementById('new-q-opt3').value.trim()}`,
+          `۴) ${document.getElementById('new-q-opt4').value.trim()}`
+        ],
+        correct_option: parseInt(document.getElementById('new-q-correct').value),
+        has_trap: document.getElementById('new-q-trap-type').value !== 'none',
+        trap_note: document.getElementById('new-q-trap-note').value.trim(),
+        detailed_solution: document.getElementById('new-q-solution').value.trim()
+      };
+
+      if (editId) {
+        const idx = allQuestions.findIndex(x => x.id === Number(editId));
+        if (idx !== -1) allQuestions[idx] = qObj;
+      } else {
+        allQuestions.unshift(qObj);
+      }
+
+      // Persist custom questions
+      try {
+        let custom = JSON.parse(localStorage.getItem('START_CUSTOM_QUESTIONS') || '[]');
+        if (editId) {
+          custom = custom.map(x => x.id === Number(editId) ? qObj : x);
+        } else {
+          custom.unshift(qObj);
+        }
+        localStorage.setItem('START_CUSTOM_QUESTIONS', JSON.stringify(custom));
+      } catch (err) {}
+
+      alert('تست با موفقیت در بانک سوالات ثبت شد.');
+      closeAddQuestionModal();
+      updateBadges();
+      renderQBTable();
+    }
+
+    function deleteQuestion(id) {
+      if (!confirm('آیا از حذف این تست اطمینان دارید؟')) return;
+      allQuestions = allQuestions.filter(q => q.id !== id);
+      try {
+        let custom = JSON.parse(localStorage.getItem('START_CUSTOM_QUESTIONS') || '[]');
+        custom = custom.filter(q => q.id !== id);
+        localStorage.setItem('START_CUSTOM_QUESTIONS', JSON.stringify(custom));
+      } catch (e) {}
+
+      updateBadges();
+      renderQBTable();
+    }
+
+    function exportQuestionsJSON() {
+      const blob = new Blob([JSON.stringify(allQuestions, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `start-questions-bank-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function generatePrintableExam() {
+      const sample = allQuestions.slice(0, 20);
+      let html = `
+        <div style="direction:rtl; font-family:'Vazirmatn',sans-serif; padding:40px; color:#000; background:#fff;">
+          <div style="border-bottom:2px solid #000; padding-bottom:15px; margin-bottom:25px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h2 style="margin:0; font-size:18px; font-weight:900;">آزمون شبیه‌ساز کنکور سراسری — موسسه استارت</h2>
+              <p style="margin:5px 0 0; font-size:12px; color:#666;">ویژه داوطلبان دوره هدایت تحصیلی و پایش شبانه • JUST START</p>
+            </div>
+            <div style="text-align:left; font-size:12px;">
+              <div>تعداد سوالات: ۲۰ تست</div>
+              <div>مدت پاسخگویی: ۲۵ دقیقه</div>
+            </div>
+          </div>
+          <div style="columns: 2; column-gap: 30px; font-size:12px; line-height:1.7;">
+            ${sample.map((q, idx) => `
+              <div style="break-inside:avoid; margin-bottom:25px; border-bottom:1px dashed #ccc; padding-bottom:15px;">
+                <div style="font-weight:bold; margin-bottom:8px;">${idx + 1}. [${q.lesson}] ${escapeHtml(q.question_text)}</div>
+                <div style="margin-right:15px;">
+                  ${q.options.map(opt => `<div style="margin-bottom:4px;">${escapeHtml(opt)}</div>`).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
+      w.print();
+    }
+
+    // ================= CRM PIPELINE ENGINE =================
+    function renderCRMKanban() {
+      let leads = JSON.parse(localStorage.getItem('START_LEADS') || '[]');
+
+      const stages = { new: [], contact: [], won: [], lost: [] };
+      leads.forEach((l, idx) => {
+        const st = l.stage || 'new';
+        if (stages[st]) stages[st].push({ ...l, idx });
+        else stages.new.push({ ...l, idx });
+      });
+
+      document.getElementById('crm-cnt-new').textContent = stages.new.length;
+      document.getElementById('crm-cnt-contact').textContent = stages.contact.length;
+      document.getElementById('crm-cnt-won').textContent = stages.won.length;
+      document.getElementById('crm-cnt-lost').textContent = stages.lost.length;
+
+      ['new', 'contact', 'won', 'lost'].forEach(st => {
+        const col = document.getElementById(`crm-col-${st}`);
+        col.innerHTML = stages[st].map(item => `
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2.5 text-xs shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-white text-sm">${escapeHtml(item.name)}</span>
+              <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-bold">${escapeHtml(item.plan || 'مشاوره')}</span>
+            </div>
+            <div class="text-sky-400 font-mono font-bold text-xs" dir="ltr">${escapeHtml(item.phone)}</div>
+            <div class="text-slate-400 text-[11px]">${escapeHtml(item.grade)} - ${escapeHtml(item.major)} • ${escapeHtml(item.createdAt || '')}</div>
+            
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+              <select onchange="updateLeadStage(${item.idx}, this.value)" class="bg-slate-900 border border-slate-700 rounded-lg text-[10px] text-slate-300 px-2 py-1 outline-none">
+                <option value="new" ${item.stage === 'new' ? 'selected' : ''}>لید جدید</option>
+                <option value="contact" ${item.stage === 'contact' ? 'selected' : ''}>در حال تماس</option>
+                <option value="won" ${item.stage === 'won' ? 'selected' : ''}>ثبت‌نام قطعی</option>
+                <option value="lost" ${item.stage === 'lost' ? 'selected' : ''}>انصراف</option>
+              </select>
+              <button onclick="deleteLead(${item.idx})" class="text-rose-400 hover:text-rose-300 text-[11px]">حذف</button>
+            </div>
+          </div>
+        `).join('');
+      });
+    }
+
+    function updateLeadStage(idx, newStage) {
+      let leads = JSON.parse(localStorage.getItem('START_LEADS') || '[]');
+      if (leads[idx]) {
+        leads[idx].stage = newStage;
+        localStorage.setItem('START_LEADS', JSON.stringify(leads));
+        renderCRMKanban();
+      }
+    }
+
+    function deleteLead(idx) {
+      if (!confirm('آیا از حذف این لید اطمینان دارید؟')) return;
+      let leads = JSON.parse(localStorage.getItem('START_LEADS') || '[]');
+      leads.splice(idx, 1);
+      localStorage.setItem('START_LEADS', JSON.stringify(leads));
+      updateBadges();
+      renderCRMKanban();
+    }
+
+    function exportLeadsCSV() {
+      let leads = JSON.parse(localStorage.getItem('START_LEADS') || '[]');
+      let csv = "نام,شماره تماس,پایه,رشته,پلن,وضعیت,تاریخ\n";
+      leads.forEach(l => {
+        csv += `"${l.name}","${l.phone}","${l.grade}","${l.major}","${l.plan}","${l.stage || 'جدید'}","${l.createdAt}"\n`;
+      });
+      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `leads-${Date.now()}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ================= NIGHTLY STUDY TRACKER =================
+    function renderStudyTable() {
+      let reports = JSON.parse(localStorage.getItem('START_STUDY_REPORTS') || '[]');
+      const tbody = document.getElementById('study-tbody');
+
+      if (reports.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">هنوز گزارش کار شبانه‌ای ثبت نشده است. روی دکمه ثبت گزارش دستی کلیک کنید.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = reports.map((r, i) => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="p-3 text-slate-400">${escapeHtml(r.date)}</td>
+          <td class="p-3 font-bold text-white">${escapeHtml(r.student)}</td>
+          <td class="p-3 font-bold text-sky-400">${escapeHtml(r.hours)} ساعت</td>
+          <td class="p-3 font-bold text-emerald-400">${escapeHtml(r.tests)} تست</td>
+          <td class="p-3">${escapeHtml(r.ratio)}٪</td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">تایید شده</span>
+          </td>
+          <td class="p-3 text-center">
+            <button onclick="alert('بازخورد مشاور: ' + '${escapeHtml(r.feedback || 'عالی، برنامه حفظ شود')}')" class="text-sky-400 font-bold px-2 py-1">مشاهده بازخورد</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function addSimulatedStudyReport() {
+      let reports = JSON.parse(localStorage.getItem('START_STUDY_REPORTS') || '[]');
+      reports.unshift({
+        date: new Date().toLocaleDateString('fa-IR'),
+        student: 'سارا محمدی (دوازدهم تجربی)',
+        hours: '۸:۱۵',
+        tests: '۱۷۵',
+        ratio: '۵۵',
+        feedback: 'پارت زیست بسیار قوی بود. تله شمارشی تست‌های گیاهی به خوبی مدیریت شد.'
+      });
+      localStorage.setItem('START_STUDY_REPORTS', JSON.stringify(reports));
+      renderStudyTable();
+    }
+
+    // ================= CMS CONFIG =================
+    function loadCMSConfig() {
+      try {
+        const cfg = JSON.parse(localStorage.getItem('START_CMS_CONFIG') || '{}');
+        if (cfg.priceSilver) document.getElementById('cms-price-silver').value = cfg.priceSilver;
+        if (cfg.priceGold) document.getElementById('cms-price-gold').value = cfg.priceGold;
+        if (cfg.priceVip) document.getElementById('cms-price-vip').value = cfg.priceVip;
+        if (cfg.announcement) document.getElementById('cms-announcement').value = cfg.announcement;
+      } catch (e) {}
+    }
+
+    function saveCMSConfig() {
+      const cfg = {
+        priceSilver: document.getElementById('cms-price-silver').value,
+        priceGold: document.getElementById('cms-price-gold').value,
+        priceVip: document.getElementById('cms-price-vip').value,
+        announcement: document.getElementById('cms-announcement').value
+      };
+      localStorage.setItem('START_CMS_CONFIG', JSON.stringify(cfg));
+      alert('تنظیمات CMS ذخیره شد و در تمامی صفحات سایت اعمال می‌گردد.');
+    }
+
+    function downloadFullSystemSnapshot() {
+      const snapshot = {
+        exportedAt: new Date().toISOString(),
+        totalQuestions: allQuestions.length,
+        questions: allQuestions,
+        leads: JSON.parse(localStorage.getItem('START_LEADS') || '[]'),
+        users: JSON.parse(localStorage.getItem('START_REGISTERED_USERS') || '[]'),
+        studyReports: JSON.parse(localStorage.getItem('START_STUDY_REPORTS') || '[]'),
+        cmsConfig: JSON.parse(localStorage.getItem('START_CMS_CONFIG') || '{}')
+      };
+      const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `start-full-system-backup-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function changeAdminPasswordPrompt() {
+      const p = prompt('رمز عبور جدید مدیریت را وارد کنید:');
+      if (p && p.trim().length >= 4) {
+        localStorage.setItem('START_ADMIN_PASS', p.trim());
+        alert('رمز عبور مدیریت با موفقیت تغییر کرد.');
+      } else if (p) {
+        alert('رمز عبور باید حداقل ۴ نویسه باشد.');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  </script>
+
+</body>
+</html>
