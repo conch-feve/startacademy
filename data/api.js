@@ -376,13 +376,24 @@
         return await StartApi.request('/admin/dashboard');
       },
 
+      async getUsers() {
+        return await StartApi.request('/admin/users');
+      },
+
+      async updateUser(userId, data) {
+        return await StartApi.request('/admin/users/update', {
+          method: 'POST',
+          body: JSON.stringify({ user_id: userId, ...data })
+        });
+      },
+
       async getNightlyDesk(date) {
         const qs = date ? `?date=${encodeURIComponent(date)}` : '';
         return await StartApi.request(`/admin/nightly-monitoring${qs}`);
       },
 
       async getStudents() {
-        return await StartApi.request('/admin/students');
+        return await StartApi.request('/admin/users');
       },
 
       async sendTelemetry(eventName, payload = {}) {

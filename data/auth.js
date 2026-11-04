@@ -907,7 +907,109 @@
       return { success: true, user: this._sanitizeSessionUser(newUser) };
     },
 
-    // ورود به حساب کاربری با شماره موبایل یا ایمیل
+    // ثبت‌نام داوطلب جدید (همزمان لوکال و ابری در D1)
+    async registerAsync(name, phoneOrEmail, password, grade, major, plan = 'free') {
+      const localRes = this.register(name, phoneOrEmail, password, grade, major, plan);
+      if (!localRes.success) return localRes;
+
+      if (window.StartApi && typeof window.StartApi.auth?.register === 'function') {
+        try {
+          const apiRes = await window.StartApi.auth.register({
+            phone: localRes.user.phone,
+            password: password,
+            full_name: localRes.user.name,
+            grade: localRes.user.grade,
+            major: localRes.user.major
+          });
+          if (apiRes && apiRes.user) {
+            localRes.user.id = apiRes.user.id;
+            localRes.user.daily_question_quota = apiRes.user.daily_question_quota;
+            localRes.user.bank_percent_allowed = apiRes.user.bank_percent_allowed;
+            this.updateUserSessionState(localRes.user);
+          }
+        } catch (e) {
+          console.warn('[StartAuth] D1 registration warning (fallback active):', e);
+        }
+      }
+      return localRes;
+    },
+
+    // ورود به حساب کاربری هوشمند (همگام‌سازی کامل بین تمام دستگاه‌ها با دیتابیس ابری D1)
+    async loginAsync(identifier, password) {
+      const rawInput = (identifier || '').trim();
+      password = (password || '').trim();
+
+      if (!rawInput || !password) {
+        return { success: false, message: 'لطفاً شماره موبایل و رمز عبور خود را وارد نمایید.' };
+      }
+
+      const normalizedPhone = this.normalizePhone(rawInput);
+
+      // ۱. تلاش اولیه برای لاگین ابری از دیتابیس متمرکز D1
+      if (window.StartApi && typeof window.StartApi.auth?.login === 'function') {
+        try {
+          const cloudRes = await window.StartApi.auth.login(normalizedPhone || rawInput, password);
+          if (cloudRes && cloudRes.success && cloudRes.user) {
+            const u = cloudRes.user;
+            const syncedUser = {
+              id: u.id,
+              name: u.full_name || u.name,
+              phone: u.phone,
+              email: u.email || (u.phone + '@start.ir'),
+              password: this._hashPassword(password),
+              grade: u.grade || 'دوازدهم',
+              major: u.major || 'تجربی',
+              plan: u.plan || 'free',
+              planName: u.plan_name || 'اکانت پایه',
+              daily_question_quota: u.daily_question_quota || 50,
+              bankPercent: u.bank_percent_allowed || 25,
+              role: u.role || 'student'
+            };
+
+            // پاکسازی داده‌های سشن قبلی و ثبت سشن جدید
+            this._clearSessionData();
+            safeStorage.setItem('START_USER_SESSION', JSON.stringify(this._sanitizeSessionUser(syncedUser)));
+
+            // افزودن/به‌روزرسانی در لیست کاربران مرورگر
+            const users = this.getUsers();
+            const existIdx = users.findIndex(x => x.phone === syncedUser.phone || x.id === syncedUser.id);
+            if (existIdx !== -1) users[existIdx] = syncedUser;
+            else users.unshift(syncedUser);
+            safeStorage.setItem('START_REGISTERED_USERS', JSON.stringify(users));
+
+            // دانلود کامل تمام آزمون‌ها، گزارش‌های شبانه، کارنامه‌ها و اشتباهات از دیتابیس D1
+            if (window.StartApi.user && typeof window.StartApi.user.getData === 'function') {
+              try {
+                const pullRes = await window.StartApi.user.getData();
+                if (pullRes && pullRes.data) {
+                  const d = pullRes.data;
+                  if (Array.isArray(d.studyLogs) && d.studyLogs.length) safeStorage.setItem('START_STUDY_LOGS', JSON.stringify(d.studyLogs));
+                  if (Array.isArray(d.offlineExams) && d.offlineExams.length) safeStorage.setItem('START_OFFLINE_EXAMS', JSON.stringify(d.offlineExams));
+                  if (Array.isArray(d.onlineExams) && d.onlineExams.length) safeStorage.setItem('START_EXAM_HISTORY', JSON.stringify(d.onlineExams));
+                  if (Array.isArray(d.mistakes) && d.mistakes.length) safeStorage.setItem('START_MISTAKES_NOTEBOOK', JSON.stringify(d.mistakes));
+                  if (Array.isArray(d.bookmarks) && d.bookmarks.length) safeStorage.setItem('START_BOOKMARKED_QUESTIONS_DATA', JSON.stringify(d.bookmarks));
+                  if (Array.isArray(d.tickets) && d.tickets.length) safeStorage.setItem('START_TROUBLESHOOTING_TICKETS', JSON.stringify(d.tickets));
+                  if (Array.isArray(d.nightlyReports) && d.nightlyReports.length) safeStorage.setItem('START_NIGHTLY_LOGS_V1', JSON.stringify(d.nightlyReports));
+                  if (d.syllabusProgress && typeof d.syllabusProgress === 'object') safeStorage.setItem('START_SYLLABUS_PROGRESS', JSON.stringify(d.syllabusProgress));
+                  if (d.weeklyPlan && typeof d.weeklyPlan === 'object') safeStorage.setItem('START_STUDENT_WEEKLY_PLAN', JSON.stringify(d.weeklyPlan));
+                }
+              } catch (errSync) {
+                console.warn('[StartAuth] D1 data pull warning:', errSync);
+              }
+            }
+
+            return { success: true, user: this._sanitizeSessionUser(syncedUser), isCloudSynced: true };
+          }
+        } catch (cloudErr) {
+          console.warn('[StartAuth] Cloud login failed, falling back to local storage:', cloudErr);
+        }
+      }
+
+      // ۲. در صورت آفلاین بودن سرور یا عدم برقراری ارتباط، استفاده از سشن محلی
+      return this.login(identifier, password);
+    },
+
+    // ورود به حساب کاربری با شماره موبایل یا ایمیل (نسخه همگام)
     login(identifier, password) {
       const rawInput = (identifier || '').trim();
       password = (password || '').trim();

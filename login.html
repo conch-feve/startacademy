@@ -388,7 +388,7 @@
       box.classList.remove('hidden');
     }
 
-    function handleLoginSubmit(e) {
+    async function handleLoginSubmit(e) {
       e.preventDefault();
       const phoneOrEmail = (document.getElementById('login-phone') || document.getElementById('login-email')).value.trim();
       const password = document.getElementById('login-password').value;
@@ -413,7 +413,10 @@
         }
       }
 
-      const res = window.StartAuth.login(phoneOrEmail, password);
+      const res = window.StartAuth.loginAsync 
+        ? await window.StartAuth.loginAsync(phoneOrEmail, password)
+        : window.StartAuth.login(phoneOrEmail, password);
+
       if (!res.success) {
         showAlert(res.message, true);
         return;
@@ -423,13 +426,14 @@
         window.StartAuth.activateGoldTrial();
       }
 
-      showAlert(`خوش آمدید ${res.user.name}. در حال انتقال به پنل...`, false);
+      const syncMsg = res.isCloudSynced ? ' (همگام‌سازی ابری D1 فعال شد)' : '';
+      showAlert(`خوش آمدید ${res.user.name}.${syncMsg} در حال انتقال به پنل...`, false);
       setTimeout(() => {
         window.location.href = redirectTarget;
       }, 500);
     }
 
-    function handleRegisterSubmit(e) {
+    async function handleRegisterSubmit(e) {
       e.preventDefault();
       const name = document.getElementById('reg-name').value.trim();
       const phone = (document.getElementById('reg-phone') || document.getElementById('reg-email')).value.trim();
@@ -442,7 +446,10 @@
         return;
       }
 
-      const res = window.StartAuth.register(name, phone, password, grade, major, 'free');
+      const res = window.StartAuth.registerAsync
+        ? await window.StartAuth.registerAsync(name, phone, password, grade, major, 'free')
+        : window.StartAuth.register(name, phone, password, grade, major, 'free');
+
       if (!res.success) {
         showAlert(res.message, true);
         return;
